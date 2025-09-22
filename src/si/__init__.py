@@ -1,9 +1,9 @@
 __author__ = "Catarina Gomes"
-__credits__ = ["João Capela", "João Correia, Fernando Cruz", "Vítor Pereira"]
+__credits__ = ["Catarina Gomes"]
 __license__ = "Apache License 2.0"
 __version__ = "0.0.1"
-__maintainer__ = "João Capela"
-__email__ = "joao.capela@ceb.uminho.pt"
+__maintainer__ = "Catarina Gomes"
+__email__ = "catarinasgomes03@gmail.com"
 
 # -----------------------------------------------------------------------------------
 # This package is heavily inspired and adapted from
