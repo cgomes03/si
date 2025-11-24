@@ -199,18 +199,110 @@ class Dataset:
         return cls(X, y, features=features, label=label)
 
 
+    def dropna(self):
+        """
+        2.1 - Remove samples (rows) that contain at least one NaN value in any independent variable.
+        Returns:
+            np.ndarray : Data matrix after removing rows with NaNs.
+        """
+        has_nan = np.isnan(self.X)
+        mask = ~np.any(has_nan, axis=1)
+        return Dataset(self.X[mask], self.y[mask] if self.y is not None else None, self.features, self.label)
+
+
+
+    def fillna(self, strategy="median"):
+        """
+        Fill NaN values based on the chosen strategy ('median' or 'mean').
+        Args:
+            strategy (str): Strategy to fill NaN values, must be 'median' or 'mean'.
+        Returns:
+            np.ndarray : Data matrix with NaNs filled according to strategy.
+        Raises:
+            ValueError: If strategy is not 'median' or 'mean'.
+        """
+        filled_X = self.X.copy()
+        nan_indices = np.argwhere(np.isnan(self.X))
+        for i, j in nan_indices:
+            if strategy == "median":
+                # Calculate median ignoring NaNs in the column
+                filled_X[i, j] = np.median(self.X[:, j][~np.isnan(self.X[:, j])])
+            elif strategy == "mean":
+                # Calculate mean ignoring NaNs in the column
+                filled_X[i, j] = np.mean(self.X[:, j][~np.isnan(self.X[:, j])])
+            else:
+                raise ValueError("Strategy must be 'median' or 'mean'.")
+        return Dataset(filled_X, self.y, self.features, self.label)
+
+
+    def remove_by_index(self, index):
+        """
+        2.3 - Remove samples by specific index (or indices).
+        Args:
+            index (int or list or np.ndarray): Index/indices of rows to remove.
+        Returns:
+            np.ndarray : Data matrix with specified rows removed.
+        """
+        mask = np.ones(self.X.shape[0], dtype=bool)
+        mask[index] = False
+        return Dataset(self.X[mask], self.y[mask] if self.y is not None else None, self.features, self.label)    
+
+
+
 if __name__ == '__main__':
     X = np.array([[1, 2, 3], [4, 5, 6]])
     y = np.array([1, 2])
     features = np.array(['a', 'b', 'c'])
     label = 'y'
     dataset = Dataset(X, y, features, label)
-    print(dataset.shape())
-    print(dataset.has_label())
-    print(dataset.get_classes())
-    print(dataset.get_mean())
-    print(dataset.get_variance())
-    print(dataset.get_median())
-    print(dataset.get_min())
-    print(dataset.get_max())
-    print(dataset.summary())
+    print("Dataset shape:", dataset.shape())
+    print("Has label?", dataset.has_label())
+    print("Classes:", dataset.get_classes())
+    print("Mean by feature:", dataset.get_mean())
+    print("Variance by feature:", dataset.get_variance())
+    print("Median by feature:", dataset.get_median())
+    print("Minimum by feature:", dataset.get_min())
+    print("Maximum by feature:", dataset.get_max())
+    print("Summary:\n", dataset.summary())
+
+
+    # Iris Dataset Examples
+    from si.io.csv_file import read_csv
+    iris = read_csv("datasets/iris/iris.csv", features=True, label=True)
+
+
+    print("\n--- Iris Dataset Examples: ---")
+
+
+    # Check total number of NaN values in the dataset
+    print("Total NaN values in the dataset:", np.isnan(iris.X).sum())
+
+
+    print("#" * 60)
+
+
+    # 2.1 - Remove samples containing any NaN values
+    print("2.1 - Remove samples with NaN values")
+    X_no_nan = iris.dropna()
+    print("Shape after removing NaN rows:", X_no_nan.shape())
+
+
+    print("#" * 60)
+
+
+    # 2.2 - Fill NaN values using feature median and mean
+    print("2.2 - Fill NaN values using median and mean for each feature")
+    X_filled_median = iris.fillna(strategy='median')
+    X_filled_mean = iris.fillna(strategy='mean')
+    print("Shape after filling NaN values (median):", X_filled_median.shape())
+    print("Shape after filling NaN values (mean):", X_filled_mean.shape())
+
+
+    print("#" * 60)
+
+
+    # 2.3 - Remove sample by specific index
+    print("2.3 - Remove sample by specific index")
+    index_to_remove = 0  # Example: remove the first sample
+    X_removed = iris.remove_by_index(index_to_remove)
+    print("Shape after removing sample at index", index_to_remove, ":", X_removed.shape())
