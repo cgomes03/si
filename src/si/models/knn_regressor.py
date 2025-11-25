@@ -2,14 +2,14 @@ from typing import Callable, Union
 
 import numpy as np
 
-from si.metrics.mse import mse
+from si.metrics.rmse import rmse
 from si.base.model import Model
 from si.data.dataset import Dataset
 
 
 class KNNRegressor(Model):
 
-    def __init__(self, k: int = 1, distance: Callable = mse, **kwargs):
+    def __init__(self, k: int = 1, distance: Callable = rmse, **kwargs):
         """
         Initialize the KNN regressor
 
@@ -83,7 +83,7 @@ class KNNRegressor(Model):
         """
         Calculates the RMSE between the predictions and the actual values.
         """
-        return mse(dataset.y, predictions)
+        return rmse(dataset.y, predictions)
 
 
 
