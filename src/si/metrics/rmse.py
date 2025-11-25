@@ -17,4 +17,4 @@ def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     float
         The RMSE value.
     """
-    return np.sqrt(np.mean((y_true - y_pred) ** 2))
+    return np.sqrt(np.mean((np.array(y_true) - np.array(y_pred))**2))
