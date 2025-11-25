@@ -19,8 +19,8 @@ class TestEuclideanDistance(TestCase):
         x = np.array([1, 2, 3])
         y = np.array([[1, 2, 3], [4, 5, 6]])
         our_distance = euclidean_distance(x, y)
-        # using sklearn
-        # to test this snippet, you need to install sklearn (pip install -U scikit-learn)
+
+
         from sklearn.metrics.pairwise import euclidean_distances
         sklearn_distance = euclidean_distances(x.reshape(1, -1), y)
         assert np.allclose(our_distance, sklearn_distance)
