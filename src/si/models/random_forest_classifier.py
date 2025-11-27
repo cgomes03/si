@@ -15,15 +15,8 @@ class RandomForestClassifier(Model):
     bootstrap samples of the dataset and random subsets of features.
     The final prediction is obtained by majority voting.
     """
-    def __init__(
-        self,
-        n_estimators: int = 100,
-        max_features: int = None,
-        min_samples_split: int = 2,
-        max_depth: int = None,
-        mode: str = "entropy",
-        seed: int = 42
-    ):
+    def __init__(self, n_estimators: int = 100, max_features: int = None, min_samples_split: int = 2, max_depth: int = None,
+                 mode: str = "entropy", seed: int = 42):
         """
         Parameters
         ----------
@@ -76,33 +69,20 @@ class RandomForestClassifier(Model):
         for _ in range(self.n_estimators):
             # bootstrap samples (with replacement)
             n_samples = dataset.X.shape[0]
-            sample_indices = np.random.choice(
-                n_samples, size=n_samples, replace=True
-            )
+            sample_indices = np.random.choice(n_samples, size=n_samples, replace=True)
             X_bootstrap = dataset.X[sample_indices]
             y_bootstrap = dataset.y[sample_indices]
 
             # random subset of features (without replacement)
-            feature_indices = np.random.choice(
-                n_features, size=max_features, replace=False
-            )
+            feature_indices = np.random.choice(n_features, size=max_features, replace=False)
             X_bootstrap = X_bootstrap[:, feature_indices]
 
             # build bootstrap Dataset
             feature_names = [dataset.features[i] for i in feature_indices]
-            bootstrap_dataset = Dataset(
-                X_bootstrap,
-                y_bootstrap,
-                features=feature_names,
-                label=dataset.label,
-            )
+            bootstrap_dataset = Dataset(X_bootstrap,y_bootstrap,features=feature_names,label=dataset.label,)
 
             # train one decision tree
-            tree = DecisionTreeClassifier(
-                max_depth=self.max_depth,
-                min_samples_split=self.min_samples_split,
-                mode=self.mode,
-            )
+            tree = DecisionTreeClassifier(max_depth=self.max_depth, min_samples_split=self.min_samples_split,mode=self.mode,)
             tree.fit(bootstrap_dataset)
 
             # store (used feature indices, trained tree)
@@ -120,29 +100,21 @@ class RandomForestClassifier(Model):
             Array of predicted labels, one per sample.
         """
         # store each tree's predictions (object allows string labels)
-        tree_predictions = np.empty(
-            (dataset.X.shape[0], self.n_estimators),
-            dtype=object,
-        )
+        tree_predictions = np.empty((dataset.X.shape[0], self.n_estimators), dtype=object,)
 
         # get predictions from each tree
         for i, (feature_indices, tree) in enumerate(self.trees):
             X_subset = dataset.X[:, feature_indices]
-            temp_dataset = Dataset(
-                X_subset,
-                dataset.y,  # labels present but not used in prediction
-                features=[dataset.features[j] for j in feature_indices],
-                label=dataset.label,
-            )
+            temp_dataset = Dataset(X_subset,
+                                   dataset.y,  # labels present but not used in prediction
+                                   features=[dataset.features[j] for j in feature_indices], label=dataset.label,)
             predictions = tree.predict(temp_dataset)
             tree_predictions[:, i] = predictions
 
         # majority vote for each sample
         final_predictions = []
         for i in range(dataset.X.shape[0]):
-            values, counts = np.unique(
-                tree_predictions[i, :], return_counts=True
-            )
+            values, counts = np.unique(tree_predictions[i, :], return_counts=True)
             final_predictions.append(values[np.argmax(counts)])
 
         return np.array(final_predictions)
@@ -173,18 +145,10 @@ if __name__ == "__main__":
     dataset = read_csv("datasets/iris/iris.csv", features=True, label=True)
 
     # Split dataset
-    train_dataset, test_dataset = train_test_split(
-        dataset, test_size=0.2, random_state=42
-    )
+    train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)
 
     # Create and train RandomForestClassifier
-    rfc = RandomForestClassifier(
-        n_estimators=10,
-        max_features=2,
-        max_depth=5,
-        min_samples_split=2,
-        seed=42,
-    )
+    rfc = RandomForestClassifier(n_estimators=10,max_features=2,max_depth=5,min_samples_split=2,seed=42,)
     rfc.fit(train_dataset)
 
     # Make predictions
