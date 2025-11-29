@@ -24,4 +24,6 @@ def tanimoto_similarity(x: np.ndarray, y: np.ndarray) -> np.ndarray:
         A 1-dimensional array of Tanimoto similarity values between x and each row of y.
     """
 
-    return np.dot(y, x) / (x**2 + y**2 - x*y).sum(axis=1)
+    dot_prods = np.dot(y, x)
+    # formula: (x.y) / (||x||^2 + ||y||^2 - x.y)
+    return dot_prods / (np.sum(x**2) + np.sum(y**2, axis=1) - dot_prods)

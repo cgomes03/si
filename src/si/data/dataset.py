@@ -199,53 +199,97 @@ class Dataset:
         return cls(X, y, features=features, label=label)
 
 
-    def dropna(self):
+    def dropna(self)-> 'Dataset':
         """
-        2.1 - Remove samples (rows) that contain at least one NaN value in any independent variable.
-        Returns:
-            np.ndarray : Data matrix after removing rows with NaNs.
+        Removes all samples containing at least one null value (NaN).
+
+        Returns
+        -------
+        Dataset
+            The modified dataset without samples containing NaN values.
         """
-        has_nan = np.isnan(self.X)
-        mask = ~np.any(has_nan, axis=1)
-        return Dataset(self.X[mask], self.y[mask] if self.y is not None else None, self.features, self.label)
+        # Check for rows with at least one NaN
+        has_nan = np.isnan(self.X).any(axis=1)
+        
+        # Invert mask to get rows to keep
+        mask = ~has_nan
+        
+        # Filter X
+        self.X = self.X[mask]
+        
+        # Filter y if it exists
+        if self.y is not None:
+            self.y = self.y[mask]
+            
+        return self
 
 
+    def fillna(self, value: Union[float, str] = "mean") -> 'Dataset':
+        """
+        Replaces all null values with another value or the mean or median of the feature/variable.
 
-    def fillna(self, strategy="median"):
+        Parameters
+        ----------
+        value: float or str, default="mean"
+            The value to replace NaN values with. Can be a specific float value, 'mean', or 'median'.
+
+        Returns
+        -------
+        Dataset
+            The modified dataset with filled NaN values.
         """
-        Fill NaN values based on the chosen strategy ('median' or 'mean').
-        Args:
-            strategy (str): Strategy to fill NaN values, must be 'median' or 'mean'.
-        Returns:
-            np.ndarray : Data matrix with NaNs filled according to strategy.
-        Raises:
-            ValueError: If strategy is not 'median' or 'mean'.
-        """
-        filled_X = self.X.copy()
-        nan_indices = np.argwhere(np.isnan(self.X))
-        for i, j in nan_indices:
-            if strategy == "median":
-                # Calculate median ignoring NaNs in the column
-                filled_X[i, j] = np.median(self.X[:, j][~np.isnan(self.X[:, j])])
-            elif strategy == "mean":
-                # Calculate mean ignoring NaNs in the column
-                filled_X[i, j] = np.mean(self.X[:, j][~np.isnan(self.X[:, j])])
+        if isinstance(value, str):
+            if value == 'mean':
+                # Calculate mean for each column ignoring NaNs
+                col_means = np.nanmean(self.X, axis=0)
+                
+                # Find indices where NaN exists
+                inds = np.where(np.isnan(self.X))
+                
+                # Replace NaNs with the corresponding column mean
+                self.X[inds] = np.take(col_means, inds[1])
+                
+            elif value == 'median':
+                # Calculate median for each column ignoring NaNs
+                col_medians = np.nanmedian(self.X, axis=0)
+                
+                # Find indices where NaN exists
+                inds = np.where(np.isnan(self.X))
+                
+                # Replace NaNs with the corresponding column median
+                self.X[inds] = np.take(col_medians, inds[1])
             else:
-                raise ValueError("Strategy must be 'median' or 'mean'.")
-        return Dataset(filled_X, self.y, self.features, self.label)
+                raise ValueError("Value must be a float, 'mean', or 'median'")
+        elif isinstance(value, (int, float)):
+            # Replace all NaNs with the provided scalar value
+            self.X = np.nan_to_num(self.X, nan=value)
+        else:
+             raise ValueError("Value must be a float, 'mean', or 'median'")
+            
+        return self
 
+    def remove_by_index(self, index: int) -> 'Dataset':
+        """
+        Removes a sample by its index.
 
-    def remove_by_index(self, index):
+        Parameters
+        ----------
+        index: int
+            The index of the sample to remove.
+
+        Returns
+        -------
+        Dataset
+            The modified dataset without the removed sample.
         """
-        2.3 - Remove samples by specific index (or indices).
-        Args:
-            index (int or list or np.ndarray): Index/indices of rows to remove.
-        Returns:
-            np.ndarray : Data matrix with specified rows removed.
-        """
-        mask = np.ones(self.X.shape[0], dtype=bool)
-        mask[index] = False
-        return Dataset(self.X[mask], self.y[mask] if self.y is not None else None, self.features, self.label)    
+        # Remove sample from X
+        self.X = np.delete(self.X, index, axis=0)
+        
+        # Remove sample from y if it exists
+        if self.y is not None:
+            self.y = np.delete(self.y, index, axis=0)
+            
+        return self
 
 
 
@@ -266,7 +310,9 @@ if __name__ == '__main__':
     print("Summary:\n", dataset.summary())
 
 
-    # Iris Dataset Examples
+
+
+    # --- Iris Dataset Examples ----
     from si.io.csv_file import read_csv
     iris = read_csv("datasets/iris/iris.csv", features=True, label=True)
 
@@ -292,8 +338,8 @@ if __name__ == '__main__':
 
     # 2.2 - Fill NaN values using feature median and mean
     print("2.2 - Fill NaN values using median and mean for each feature")
-    X_filled_median = iris.fillna(strategy='median')
-    X_filled_mean = iris.fillna(strategy='mean')
+    X_filled_median = iris.fillna(value='median')
+    X_filled_mean = iris.fillna(value='mean')
     print("Shape after filling NaN values (median):", X_filled_median.shape())
     print("Shape after filling NaN values (mean):", X_filled_mean.shape())
 

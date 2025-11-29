@@ -60,8 +60,7 @@ class PCA(Transformer):
 
         # 5. Infer explained variance 
         total_variance = np.sum(sorted_eigenvalues)
-        self.explained_variance = \
-            sorted_eigenvalues[:self.n_components] / total_variance
+        self.explained_variance = sorted_eigenvalues[:self.n_components] / total_variance
 
         return self
 
@@ -75,6 +74,7 @@ class PCA(Transformer):
         return Dataset(
             X_reduced,
             dataset.y,
-            features=[f'PC{i+1}' for i in range(self.n_components)]
+            features=[f'PC{i+1}' for i in range(self.n_components)],
+            label=dataset.label
         )
 

@@ -35,6 +35,10 @@ class SelectPercentile(Transformer):
 
 
     def __init__(self, score_func: Callable = f_classification, percentile=50, **kwargs):
+        """
+        Initialize the SelectPercentile transformer.
+        """
+
         super().__init__(**kwargs)
         self.score_func = score_func
         self.percentile = percentile
@@ -42,8 +46,6 @@ class SelectPercentile(Transformer):
         self.p = None
     
     def _fit(self, dataset: Dataset) -> 'SelectPercentile':
-
-
         """
         Compute feature scores for the input dataset.
 
@@ -60,22 +62,31 @@ class SelectPercentile(Transformer):
             Fitted transformer with calculated feature scores.
         """
 
-    def __init__(self, score_func: Callable = f_classification, percentile=50, **kwargs):
-        super().__init__(**kwargs)
-        self.score_func = score_func
-        self.percentile = percentile
-        self.F = None
-        self.p = None
-
-    def _fit(self, dataset: Dataset) -> 'SelectPercentile':
         self.F, self.p = self.score_func(dataset)
         return self
 
     def _transform(self, dataset: Dataset) -> Dataset:
+        """
+        Selects the highest scoring features based on the percentile.
+
+        Parameters
+        ----------
+        dataset : Dataset
+            The input dataset to select features from.
+
+        Returns
+        -------
+        Dataset
+            A new Dataset object containing only the selected features.
+        """
+        
         num_features = dataset.X.shape[1]
         k = max(1, int(np.ceil(num_features * self.percentile / 100)))
+        
         indices = np.argsort(self.F)[::-1][:k]
+        
         X_new = dataset.X[:, indices]
         features_new = [dataset.features[i] for i in indices]
+        
         return Dataset(X_new, dataset.y, features_new)
 
