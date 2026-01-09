@@ -2,14 +2,15 @@ from typing import Callable, Union
 
 import numpy as np
 
-from si.metrics.rmse import rmse
 from si.base.model import Model
 from si.data.dataset import Dataset
+from si.statistics.euclidean_distance import euclidean_distance
+from si.metrics.rmse import rmse
 
 
 class KNNRegressor(Model):
 
-    def __init__(self, k: int = 1, distance: Callable = rmse, **kwargs):
+    def __init__(self, k: int = 1, distance: Callable = euclidean_distance, **kwargs):
         """
         Initialize the KNN regressor
 

@@ -1,5 +1,4 @@
 import numpy as np
-import sklearn
 
 
 def tanimoto_similarity(x: np.ndarray, y: np.ndarray) -> np.ndarray:

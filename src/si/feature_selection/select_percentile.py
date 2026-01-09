@@ -122,6 +122,6 @@ class SelectPercentile(Transformer):
         features_new = [dataset.features[i] for i in selected_indices]
         X_new = dataset.X[:, selected_indices]
 
-        return Dataset(X_new, dataset.y, features_new)
+        return Dataset(X_new, dataset.y, features_new, dataset.label)
 
 

@@ -258,6 +258,11 @@ class Dataset:
                 
                 # Replace NaNs with the corresponding column median
                 self.X[inds] = np.take(col_medians, inds[1])
+
+            elif isinstance(value, (int, float)):
+                # Replace all NaNs with the provided scalar value
+                self.X = np.nan_to_num(self.X, nan=value)
+
             else:
                 raise ValueError("Value must be a float, 'mean', or 'median'")
         elif isinstance(value, (int, float)):
@@ -340,8 +345,10 @@ if __name__ == '__main__':
     print("2.2 - Fill NaN values using median and mean for each feature")
     X_filled_median = iris.fillna(value='median')
     X_filled_mean = iris.fillna(value='mean')
+    X_fill_scalar = iris.fillna(value=0.0)
     print("Shape after filling NaN values (median):", X_filled_median.shape())
     print("Shape after filling NaN values (mean):", X_filled_mean.shape())
+    print("Shape after filling NaN values (scalar 0.0):", X_fill_scalar.shape())
 
 
     print("#" * 60)
