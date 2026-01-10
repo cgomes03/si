@@ -177,3 +177,128 @@ class ReLUActivation(ActivationLayer):
             The derivative of the activation function.
         """
         return np.where(input >= 0, 1, 0)
+
+
+
+class TanhActivation(ActivationLayer):
+    """
+    Tanh (hyperbolic tangent) activation function.
+    
+    Squashes values to the range [-1, 1].
+    Often preferred over sigmoid in hidden layers.
+    """
+
+    def activation_function(self, input: np.ndarray) -> np.ndarray:
+        """
+        Tanh activation function.
+
+        Parameters
+        ----------
+        input: numpy.ndarray
+            The input to the layer.
+
+        Returns
+        -------
+        numpy.ndarray
+            The output of the layer (values in range [-1, 1]).
+        """
+        return np.tanh(input)
+
+    def derivative(self, input: np.ndarray) -> np.ndarray:
+        """
+        Derivative of the tanh activation function.
+        
+        Formula: d/dx tanh(x) = 1 - tanh²(x)
+
+        Parameters
+        ----------
+        input: numpy.ndarray
+            The input to the layer.
+
+        Returns
+        -------
+        numpy.ndarray
+            The derivative of the activation function.
+        """
+        return 1 - np.tanh(input) ** 2
+
+
+class SoftmaxActivation(ActivationLayer):
+    """
+    Softmax activation function.
+
+    Transforms arbitrary scores (logits) into a probability distribution
+    over classes, where each row sums to 1. Typically used in the output
+    layer for multi-class classification problems.
+    """
+
+    def activation_function(self, input: np.ndarray) -> np.ndarray:
+        """
+        Compute the numerically stable softmax of the input.
+
+        Implements the STABLE version of softmax by subtracting the maximum
+        of each row before applying the exponential, to prevent numerical
+        overflow.
+
+        Formula (per sample, i.e., per row x):
+            shifted_x = x - max(x)
+            softmax_i(x) = exp(shifted_x_i) / sum_j exp(shifted_x_j)
+
+        Why subtract max?
+            - exp(x_i) / sum(exp(x_j)) = exp(x_i - c) / sum(exp(x_j - c))
+            - Subtracting max(x) prevents overflow of exp() for large values
+            - Numerically equivalent but avoids underflow/overflow issues
+
+        Parameters
+        ----------
+        input : numpy.ndarray
+            Input array to the layer.
+            Typical shape: (batch_size, n_classes)
+
+        Returns
+        -------
+        numpy.ndarray
+            Array with probability distribution over classes.
+            Same shape as input.
+            For each row:
+                - All values are in [0, 1]
+                - Sum of values equals 1
+        """
+        # Subtract maximum in each row for numerical stability
+        x_shifted = input - np.max(input, axis=1, keepdims=True)
+        # Exponential of shifted values
+        exp_x = np.exp(x_shifted)
+        # Normalize to obtain probability distribution
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+
+    def derivative(self, input: np.ndarray) -> np.ndarray:
+        """
+        Compute the derivative of the softmax activation.
+
+        In theory, the derivative of softmax is a full Jacobian matrix:
+            J_ij = softmax_i(x) * (δ_ij - softmax_j(x))
+
+        where δ_ij is the Kronecker delta (1 if i==j, 0 otherwise).
+
+        For practical use in neural networks, especially when combined
+        with loss functions like cross-entropy, it is often sufficient
+        (or more convenient) to use only the diagonal part of this matrix:
+
+            d_softmax_i / d_x_i ≈ softmax_i(x) * (1 - softmax_i(x))
+
+        This implementation returns this simplified version, element-wise,
+        suitable for element-wise multiplication in backward_propagation.
+
+        Parameters
+        ----------
+        input : numpy.ndarray
+            Input array to the layer (same shape as forward).
+
+        Returns
+        -------
+        numpy.ndarray
+            Simplified derivative of softmax with respect to input,
+            with the same shape as `input`.
+        """
+        softmax = self.activation_function(input)
+        return softmax * (1 - softmax)
